@@ -1,29 +1,30 @@
 #include <cstdio>
 #include <cstring>
 
-char *Compile(const char *input) {
+void **Compile(const char *input, void *inst_list[]) {
     const auto inst_sym = "><+-.,[]";
     auto len = strlen(input);
-    auto program = new char[len + 1];
+    auto program = new void *[len + 1];
     for (int i = 0; i < len; ++i) {
         for (int j = 0; j < 8; ++j) {
             if (input[i] == inst_sym[j]) {
-                program[i] = j;
+                program[i] = inst_list[j];
                 break;
             }
         }
     }
-    program[len] = 8;
+    program[len] = inst_list[8];
     return program;
 }
 
-void Interpret(char *program, const char *input) {
-#define NEXT() goto *inst_list[*++inst]
+void Interpret(const char *input) {
+#define NEXT() goto **++inst
 
     void *inst_list[] = {
         &&addp, &&subp, &&add, &&sub, &&input,
         &&output, &&jumpf, &&jumpb, &&end
     };
+    auto program = Compile(input, inst_list);
     auto inst = program - 1;
     char mem[65536] = {0};
     auto ptr = mem;
@@ -68,7 +69,7 @@ void Interpret(char *program, const char *input) {
 }
 
 int main(int argc, const char *argv[]) {
-    if (argc == 2) Interpret(Compile(argv[1]), argv[1]);
+    if (argc == 2) Interpret(argv[1]);
     putchar('\n');
     return 0;
 }
